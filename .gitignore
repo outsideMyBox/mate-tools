@@ -1,0 +1,7 @@
+
+/**/classes/
+/**/dist/
+/**/.idea/
+/**/*.iml
+.~lock.*
+hs_err_pid*

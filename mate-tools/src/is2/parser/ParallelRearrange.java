@@ -24,9 +24,6 @@ final public class ParallelRearrange implements Callable<Object> {
 		public PA(float p2, short ch2, short pa2) { p=p2; ch=ch2;pa=pa2;}
 	}
 
-	// list of parent child combinations
-	static ArrayList<PA> parents = new ArrayList<PA>();
-	static ArrayList<PA> order = new ArrayList<PA>();
 	// best new parent child combination, found so far
 	public float max;
 
@@ -39,18 +36,21 @@ final public class ParallelRearrange implements Callable<Object> {
 	
 	// child, new parent, new label
 	public short wh,nPar,nType;
+
+	private ParallelRearranges parallelRearranges;
 	
 	/**
 	 * Initialize the parallel rearrange thread
-	 * 
+	 *
+	 * @param parallelRearranges
 	 * @param isChild2 is a child
-	 * @param edgesC the part-of-speech edge mapping
 	 * @param pos the part-of-speech 
 	 * @param x the data
 	 * @param s the heads
 	 * @param ts the types
 	 */
-	public ParallelRearrange(boolean[][] isChild2,short[] pos, DataFES x, short[] s, short[] ts) {
+	public ParallelRearrange(ParallelRearranges parallelRearranges,
+	                         boolean[][] isChild2,short[] pos, DataFES x, short[] s, short[] ts) {
 		
 		heads =new short[s.length];
 		System.arraycopy(s, 0,  heads, 0, s.length);
@@ -60,6 +60,7 @@ final public class ParallelRearrange implements Callable<Object> {
 
 		isChild=isChild2;
 	    //edges = edgesC;
+		this.parallelRearranges = parallelRearranges;
 		this.pos =pos;
 		this.x=x;
 	}
@@ -70,7 +71,7 @@ final public class ParallelRearrange implements Callable<Object> {
 		
 		// check the list of new possible parents and children for a better combination
 		while(true) {
-			PA px = getPA();
+			PA px = parallelRearranges.getPA();
 			if (px==null) break;
 
 			float max=0;
@@ -103,25 +104,7 @@ final public class ParallelRearrange implements Callable<Object> {
 		return null;
 	}
 
-	/**
-	 * Add a child-parent combination which are latter explored for rearrangement
-	 * 
-	 * @param p2
-	 * @param ch2
-	 * @param pa
-	 */
-	static public void add(float p2, short ch2, short pa) {
-		PA px = new PA(p2,ch2,pa);
-		parents.add(px);
-		order.add(px);
-	}
 
-	static private PA getPA() {
-		synchronized (parents) {
-			if (parents.size()==0) return null;
-			return parents.remove(parents.size()-1);
-		}
-	}
 
 	
 }

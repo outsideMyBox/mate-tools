@@ -1,64 +1,183 @@
-<project name="analyse" default="compile" basedir=".">
-    <description>
-        The base ant build file.
-    </description>
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="mate-tools" default="all">
+  
+  
+  <property file="build.properties"/>
+  <!-- Uncomment the following property if no tests compilation is needed -->
+  <!-- 
+  <property name="skip.tests" value="true"/>
+   -->
+  
+  <!-- Compiler options -->
+  
+  <property name="compiler.debug" value="on"/>
+  <property name="compiler.generate.no.warnings" value="off"/>
+  <property name="compiler.args" value=""/>
+  <property name="compiler.max.memory" value="700m"/>
+  <patternset id="ignored.files">
+    <exclude name="**/*.hprof/**"/>
+    <exclude name="**/*.pyc/**"/>
+    <exclude name="**/*.pyo/**"/>
+    <exclude name="**/*.rbc/**"/>
+    <exclude name="**/*.yarb/**"/>
+    <exclude name="**/*~/**"/>
+    <exclude name="**/.DS_Store/**"/>
+    <exclude name="**/.git/**"/>
+    <exclude name="**/.hg/**"/>
+    <exclude name="**/.svn/**"/>
+    <exclude name="**/CVS/**"/>
+    <exclude name="**/__pycache__/**"/>
+    <exclude name="**/_svn/**"/>
+    <exclude name="**/vssver.scc/**"/>
+    <exclude name="**/vssver2.scc/**"/>
+  </patternset>
+  <patternset id="library.patterns">
+    <include name="*.egg"/>
+    <include name="*.jar"/>
+    <include name="*.ear"/>
+    <include name="*.swc"/>
+    <include name="*.war"/>
+    <include name="*.zip"/>
+    <include name="*.ane"/>
+  </patternset>
+  <patternset id="compiler.resources">
+    <exclude name="**/?*.java"/>
+    <exclude name="**/?*.form"/>
+    <exclude name="**/?*.class"/>
+    <exclude name="**/?*.groovy"/>
+    <exclude name="**/?*.scala"/>
+    <exclude name="**/?*.flex"/>
+    <exclude name="**/?*.kt"/>
+    <exclude name="**/?*.clj"/>
+    <exclude name="**/?*.aj"/>
+  </patternset>
+  
+  
+  <!-- Global Libraries -->
+  
+  <!-- Modules -->
+  
+  
+  <!-- Module mate-tools -->
+  
+  <dirname property="module.mate-tools.basedir" file="${ant.file}"/>
+  
+  
+  
+  <property name="compiler.args.mate-tools" value="-encoding UTF-8 -source 8 -target 8 ${compiler.args}"/>
+  
+  <property name="mate-tools.output.dir" value="${module.mate-tools.basedir}/classes"/>
+  <property name="mate-tools.testoutput.dir" value="${module.mate-tools.basedir}/classes"/>
+  
+  <path id="mate-tools.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="mate-tools.module.production.classpath">
+    <fileset dir="${basedir}/lib">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="mate-tools.runtime.production.module.classpath">
+    <pathelement location="${mate-tools.output.dir}"/>
+    <fileset dir="${basedir}/lib">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="mate-tools.module.classpath">
+    <pathelement location="${mate-tools.output.dir}"/>
+    <fileset dir="${basedir}/lib">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  <path id="mate-tools.runtime.module.classpath">
+    <pathelement location="${mate-tools.output.dir}"/>
+    <fileset dir="${basedir}/lib">
+      <patternset refid="library.patterns"/>
+    </fileset>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.mate-tools">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.mate-tools">
+    <patternset refid="excluded.from.module.mate-tools"/>
+  </patternset>
+  
+  <path id="mate-tools.module.sourcepath">
+    <dirset dir="${module.mate-tools.basedir}">
+      <include name="src"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.mate-tools" depends="compile.module.mate-tools.production,compile.module.mate-tools.tests" description="Compile module mate-tools"/>
+  
+  <target name="compile.module.mate-tools.production" description="Compile module mate-tools; production classes">
+    <mkdir dir="${mate-tools.output.dir}"/>
+    <javac destdir="${mate-tools.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true">
+      <compilerarg line="${compiler.args.mate-tools}"/>
+      <bootclasspath refid="mate-tools.module.bootclasspath"/>
+      <classpath refid="mate-tools.module.production.classpath"/>
+      <src refid="mate-tools.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.mate-tools"/>
+    </javac>
     
-  <!-- set global properties for this build -->
-  <property name="src" location="src"/>
-  <property name="classes" location="classes"/>
-  <property name="dist" location="dist"/>
-  	<property name="include" location="include"/>
-
-  
-  <target name="init" description="Clears the /class directory">
-    <!-- Create the time stamp -->
-    <tstamp/> 
-    <mkdir dir="dist"/>
-    <mkdir dir="javadoc"/>
-    <mkdir dir="classes"/>
-  </target>
-
-  <target name="compile" depends="init" description="Compile the source" >
-    <!-- Compile the java code from ${src} into ${build}   executable="javac" -->
-  
-    <javac  srcdir="${src}"   
-           destdir="${classes}"          
-    	 includeantruntime="false"
-    	executable="javac.exe"
-    	   optimize="true"
-    	   debug="off"
-	   classpath=""/>
-	
-  </target>
-
-  <target name="build"  description="Build the distribution .jar file" >
-    <!-- Create the temporary distribution directory -->
-    <delete includeEmptyDirs="true"><fileset dir="dist" includes="**/*" excludes="gtc*.jar"/></delete>  
-    <mkdir dir="${dist}/temp-${DSTAMP}"/>  
-    <copy todir="${dist}/temp-${DSTAMP}"><fileset dir="${classes}" /></copy>  
-  	<copy todir="${dist}/temp-${DSTAMP}"><fileset dir="${include}" /></copy>
-    <!-- copy everything from /include/others to dist 
-    <copy todir="${dist}/temp-${DSTAMP}"><fileset dir="${include}/others" /></copy>-->
-    <!-- copy everything from /include/classes to dist 
-    <copy todir="${dist}/temp-${DSTAMP}"><fileset dir="${include}/classes" /></copy>-->
-    <!-- pack everything into a .jar file -->
-    <jar jarfile="${dist}/anna-3.5.jar" 
-         basedir="${dist}/temp-${DSTAMP}"/>
-    <delete dir="${dist}/temp-{DSTAMP}" />
+    <copy todir="${mate-tools.output.dir}">
+      <fileset dir="${module.mate-tools.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
   </target>
   
-  <target name="javadoc" depends="init" description="Create the javadoc API documentation" >
-        <delete includeEmptyDirs="true"><fileset dir="javadoc" includes="**/*"/></delete>  
-        <!-- TODO: you might add new packages to packagenames -->
-        <javadoc destdir="javadoc" access="package" source="1.4"
-            use="false" notree="false" nonavbar="false" noindex="true"
-            splitindex="false" author="true" version="true"
-            nodeprecatedlist="true" nodeprecated="false"
-            packagenames="gtc.*.*"
-            sourcepath="src" classpath="class"/>
-   </target>
-   
-
-	 <target name="all" depends="init,compile,javadoc" description="Make all" />
+  <target name="compile.module.mate-tools.tests" depends="compile.module.mate-tools.production" description="compile module mate-tools; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.mate-tools" description="cleanup module">
+    <delete dir="${mate-tools.output.dir}"/>
+    <delete dir="${mate-tools.testoutput.dir}"/>
+  </target>
+  
+  <target name="init" description="Build initialization">
+    <!-- Perform any build initialization in this target -->
+  </target>
+  
+  <target name="clean" depends="clean.module.mate-tools" description="cleanup all"/>
+  
+  <target name="build.modules" depends="init, clean, compile.module.mate-tools" description="build all modules"/>
+  
+  <target name="init.artifacts">
+    <property name="artifacts.temp.dir" value="${basedir}/__artifacts_temp"/>
+    <property name="artifact.output.anna-patched-3.5:jar" value="${basedir}/dist"/>
+    <mkdir dir="${artifacts.temp.dir}"/>
+    <property name="temp.jar.path.anna-patched-3.5.jar" value="${artifacts.temp.dir}/anna-patched-3.5.jar"/>
+  </target>
+  
+  <target name="artifact.anna-patched-3.5:jar" depends="init.artifacts, compile.module.mate-tools" description="Build &#39;anna-patched-3.5:jar&#39; artifact">
+    <property name="artifact.temp.output.anna-patched-3.5:jar" value="${artifacts.temp.dir}/anna_patched_3_5_jar"/>
+    <mkdir dir="${artifact.temp.output.anna-patched-3.5:jar}"/>
+    <jar destfile="${temp.jar.path.anna-patched-3.5.jar}" duplicate="preserve" filesetmanifest="mergewithoutmain">
+      <zipfileset dir="${mate-tools.output.dir}"/>
+      <zipfileset src="${basedir}/lib/trove-2.0.4.jar"/>
+      <zipfileset src="${basedir}/lib/commons-math-2.2.jar"/>
+    </jar>
+    <copy file="${temp.jar.path.anna-patched-3.5.jar}" tofile="${artifact.temp.output.anna-patched-3.5:jar}/anna-patched-3.5.jar"/>
+  </target>
+  
+  <target name="build.all.artifacts" depends="artifact.anna-patched-3.5:jar" description="Build all artifacts">
+    <mkdir dir="${artifact.output.anna-patched-3.5:jar}"/>
+    <copy todir="${artifact.output.anna-patched-3.5:jar}">
+      <fileset dir="${artifact.temp.output.anna-patched-3.5:jar}"/>
+    </copy>
+    
+    <!-- Delete temporary files -->
+    <delete dir="${artifacts.temp.dir}"/>
+  </target>
+  
+  <target name="all" depends="build.modules, build.all.artifacts" description="build all"/>
 </project>
-
